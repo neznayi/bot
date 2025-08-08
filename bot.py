@@ -1,12 +1,14 @@
+#!/usr/bin/env python3
+
 import logging
+# Отключаем **всё** логирование вплоть до уровня CRITICAL
+logging.disable(logging.CRITICAL)
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
-class NoHTTPFilter(logging.Filter):
-    def filter(self, record: logging.LogRecord) -> bool:
-        msg = record.getMessage()
-        return not msg.startswith("HTTP Request:")
-
+# Раз вы отключили логи, можно просто получить пустой логгер
+logger = logging.getLogger(__name__)
 
 BOT_TOKEN = "7249869508:AAEdvohNBIOst-rMMG08-IgfPMOtKqQ6yqw"
 CHANNEL_LINKS = {
@@ -15,9 +17,11 @@ CHANNEL_LINKS = {
     "workout":     "https://t.me/amyrskiu_parnisha",
 }
 
+# === Обработчик /start ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message and update.message.text == "/start":
         user = update.effective_user
+        # эти вызовы ничего не выведут, т.к. логирование отключено
         logger.info(f"/start от {user.full_name} (ID: {user.id})")
 
         welcome_text = (
@@ -56,6 +60,7 @@ async def handle_goal_selection(update: Update, context: ContextTypes.DEFAULT_TY
         logger.warning(f"Не найдена ссылка для цели '{goal}'")
         await query.edit_message_text("Произошла ошибка. Попробуй позже.")
 
+# === Точка входа ===
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
